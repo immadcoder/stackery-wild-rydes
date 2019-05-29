@@ -7,14 +7,14 @@ Resources:
       BucketName: !Sub ${AWS::StackName}-frontendc-${AWS::AccountId}
       WebsiteConfiguration:
         IndexDocument: index.html
-  Function:
+  PopulateFrontendContent:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${AWS::StackName}-Function
+      FunctionName: !Sub ${AWS::StackName}-PopulateFrontendContent
       Description: !Sub
         - Stack ${StackTagName} Environment ${EnvironmentTagName} Function ${ResourceName}
-        - ResourceName: Function
-      CodeUri: src/Function
+        - ResourceName: PopulateFrontendContent
+      CodeUri: src/populateFrontendContent
       Handler: index.handler
       Runtime: nodejs10.x
       MemorySize: 3008
@@ -28,6 +28,11 @@ Resources:
         Variables:
           BUCKET_NAME: !Ref FrontendContent
           BUCKET_ARN: !GetAtt FrontendContent.Arn
+  PopulateFrontendContentDeployTrigger:
+    Type: Custom::FunctionDeployTrigger
+    Properties:
+      ServiceToken: !GetAtt PopulateFrontendContent.Arn
+      DeploymentTimestamp: !Ref DeploymentTimestamp
 Parameters:
   StackTagName:
     Type: String
@@ -35,3 +40,6 @@ Parameters:
   EnvironmentTagName:
     Type: String
     Description: Environment Name (injected by Stackery at deployment time)
+  DeploymentTimestamp:
+    Type: Number
+    Description: Deployment preparation timestamp in milliseconds Since Epoch (injected by Stackery at deployment time)
